@@ -36,6 +36,7 @@ async function run() {
     // My Collection
     const userCollection = client.db(assetDB).collection("user");
     const assetCollection = client.db(assetDB).collection("asset");
+    const customCollection = client.db(assetDB).collection("custom");
 
     // jwt created......
     app.post('/jwt', async (req, res) => {
@@ -183,6 +184,36 @@ async function run() {
       const result = await assetCollection.deleteOne(query);
       res.send(result);
     })
+    app.patch('/asset/:id', async (req, res) => {
+        const item = req.body;
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) }
+        const updatedDoc = {
+          $set: {
+            product: item.product,
+            type: item.type,
+            quantity: item.quantity,
+            date: item.date
+            
+          }
+        }
+  
+        const result = await assetCollection.updateOne(filter, updatedDoc)
+        res.send(result);
+      })
+
+
+
+  // Custom Request make 
+  app.get('/custom', async (req, res) => {
+    const result = await customCollection.find().toArray();
+    res.send(result);
+  });
+  app.post('/custom',  async (req, res) => {
+    const item = req.body;
+    const result = await customCollection.insertOne(item);
+    res.send(result);
+  })
 
   } finally {
     // Ensures that the client will close when you finish/error
