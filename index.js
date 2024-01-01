@@ -214,6 +214,27 @@ async function run() {
     const result = await customCollection.insertOne(item);
     res.send(result);
   })
+  app.patch('/custom/:id', async (req, res) => {
+        const item = req.body;
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) }
+        const updatedDoc = {
+          $set: {
+            asset: item.asset,
+            type: item.type,
+            price: item.price,
+            why: item.why,
+            adinfo: item.adinfo,
+            image: item.image,
+            date: item.date
+            
+          }
+        }
+  
+        const result = await customCollection.updateOne(filter, updatedDoc)
+        res.send(result);
+      })
+
 
   } finally {
     // Ensures that the client will close when you finish/error
