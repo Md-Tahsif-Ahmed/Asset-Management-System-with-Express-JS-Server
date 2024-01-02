@@ -272,6 +272,30 @@ async function run() {
       const result = await requestCollection.insertOne(item);
       res.send(result);
     });
+    app.patch('/myreq/approve/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+          $set: {
+              status: 'approved',
+              Approval_date: new Date(), // Assuming you want to set the current date
+          },
+      };
+  
+      try {
+          const result = await requestCollection.updateOne(filter, updatedDoc);
+  
+          if (result.modifiedCount > 0) {
+              res.send({ success: true });
+          } else {
+              res.send({ success: false, message: 'No document modified' });
+          }
+      } catch (error) {
+          console.error('Error:', error.message);
+          res.status(500).send({ success: false, message: 'Internal server error' });
+      }
+  });
+
 
     
     
