@@ -319,6 +319,14 @@ async function run() {
       }
   });
 
+  // My request by email
+  app.get('/myreq/:email', async (req, res) => {
+    const email = req.params.email;
+    const cursor = requestCollection.find({email:email});
+    const result = await cursor.toArray();
+    res.send(result);
+  });
+
 
     
     
