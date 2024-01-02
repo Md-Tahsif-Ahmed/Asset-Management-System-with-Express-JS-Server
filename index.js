@@ -37,6 +37,7 @@ async function run() {
     const userCollection = client.db(assetDB).collection("user");
     const assetCollection = client.db(assetDB).collection("asset");
     const customCollection = client.db(assetDB).collection("custom");
+    const requestCollection = client.db(assetDB).collection("request");
 
     // jwt created......
     app.post('/jwt', async (req, res) => {
@@ -259,6 +260,19 @@ async function run() {
             res.status(500).send({ success: false, message: 'Internal server error' });
         }
     });
+
+
+    // Request for asset funtionality API,
+    app.get('/myreq', async (req, res) => {
+      const result = await requestCollection.find().toArray();
+      res.send(result);
+    });
+    app.post('/myreq',  async (req, res) => {
+      const item = req.body;
+      const result = await requestCollection.insertOne(item);
+      res.send(result);
+    });
+
     
     
     
