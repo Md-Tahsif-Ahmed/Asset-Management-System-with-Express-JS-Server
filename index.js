@@ -332,7 +332,60 @@ async function run() {
     const result = await requestCollection.deleteOne(query);
     res.send(result);
   })
+  app.patch('/myreq/return/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const updatedDoc = {
+        $set: {
+            status: 'returned',
+            Return_date: new Date(), // Assuming you want to set the current date
+        },
+    };
+ 
+    const result = await requestCollection.updateOne(filter, updatedDoc);
+    res.send(result);
+         
+     
+});
+app.patch('/asset/quantity/:asset', async (req, res) => {
+  const assetName = req.params.asset;
+  const filter = { product: assetName };
 
+  try {
+    // Fetch the current quantity from the database
+    const asset = await assetCollection.findOne(filter);
+
+    if (!asset) {
+      return res.status(404).json({ error: 'Asset not found' });
+    }
+
+    const currentQuantity = parseInt(asset.quantity, 10);
+    
+
+
+    // Update the document with the incremented quantity and the current date
+    const result = await assetCollection.updateOne(
+      filter,
+      {
+        $set: {
+          quantity: currentQuantity + 1,
+          quantity_Date: new Date(),
+        },
+      }
+    );
+
+    if (result.modifiedCount > 0) {
+      // Return a more informative response, e.g., updated asset details
+      const updatedAsset = await assetCollection.findOne(filter);
+      res.status(200).json({ success: true, updatedAsset });
+    } else {
+      res.status(500).json({ error: 'Failed to update quantity' });
+    }
+  } catch (error) {
+    console.error('An error occurred:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
     
     
