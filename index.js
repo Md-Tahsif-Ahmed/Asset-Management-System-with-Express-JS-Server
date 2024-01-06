@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 // Middleware
  
 app.use(cors({
-  origin: ['nebtahsif-badge.surge.sh'],
+  origin: ['nebtahsif-badge.surge.sh', 'http://localhost:5173'],
   credentials: true
 }));
 app.use(express.json());
