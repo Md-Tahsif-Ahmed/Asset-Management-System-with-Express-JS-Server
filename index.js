@@ -163,7 +163,25 @@ async function run() {
 
     // Asset releted API
     app.get('/asset', async (req, res) => {
-        const result = await assetCollection.find().toArray();
+      const {assetType, searchTerm, sortBy} = req.query;
+
+      // Initialize filter as an empty object
+      const filter = {};
+      if (assetType) {
+          filter.type = assetType;
+      }
+      if (searchTerm) {
+          filter.$or = [
+              { product: { $regex: searchTerm, $options: 'i' } },
+              
+          ];
+      }
+     
+      const sortOption = {};
+      if (sortBy === 'asc' || sortBy === 'dsc') {
+          sortOption.quantity = sortBy === 'asc' ? 1 : -1;
+      }
+        const result = await assetCollection.find({...filter}).sort(sortOption).toArray();
         res.send(result);
       });
   
@@ -209,12 +227,19 @@ async function run() {
   app.get('/custom', async (req, res) => {
     const result = await customCollection.find().toArray();
     res.send(result);
+ 
   });
   app.post('/custom',  async (req, res) => {
     const item = req.body;
     const result = await customCollection.insertOne(item);
     res.send(result);
   })
+  app.get('/custom/:email', async (req, res) => {
+    const email = req.params.email;
+    const cursor = customCollection.find({email:email});
+    const result = await cursor.toArray();
+    res.send(result);
+  });
   app.patch('/custom/:id', async (req, res) => {
         const item = req.body;
         const id = req.params.id;
@@ -266,7 +291,7 @@ async function run() {
       const updatedDoc = {
           $set: {
               status: 'Rejected',
-              Approval_date: new Date(), // Assuming you want to set the current date
+              reject_date: new Date(), // Assuming you want to set the current date
           },
       };
   
@@ -287,13 +312,24 @@ async function run() {
 
     // Request for asset funtionality API,
     app.get('/myreq', async (req, res) => {
-      const result = await requestCollection.find().toArray();
+      const {searchTerm} = req.query;
+
+      // Initialize filter as an empty object
+      const filter = {};
+      if (searchTerm) {
+          filter.$or = [
+              { email: { $regex: searchTerm, $options: 'i' } },
+              
+          ];
+      }
+      const result = await requestCollection.find({...filter}).toArray();
+      // const count = await requestCollection.estimatedDocumentCount();
       res.send(result);
     });
     app.post('/myreq',  async (req, res) => {
       const item = req.body;
       const result = await requestCollection.insertOne(item);
-      res.send(result);
+      res.send({result, count});
     });
     app.patch('/myreq/approve/:id', async (req, res) => {
       const id = req.params.id;
@@ -319,13 +355,57 @@ async function run() {
       }
   });
 
-  // My request by email
+  app.patch('/myreq/reject/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const updatedDoc = {
+        $set: {
+            status: 'Rejected',
+            reject_date: new Date(), // Assuming you want to set the current date
+        },
+    };
+
+    try {
+        const result = await requestCollection.updateOne(filter, updatedDoc);
+
+        if (result.modifiedCount > 0) {
+            res.send({ success: true });
+        } else {
+            res.send({ success: false, message: 'No document modified' });
+        }
+    } catch (error) {
+        console.error('Error:', error.message);
+        res.status(500).send({ success: false, message: 'Internal server error' });
+    }
+});
+
+  // My request by email search and filter funtionality
   app.get('/myreq/:email', async (req, res) => {
     const email = req.params.email;
-    const cursor = requestCollection.find({email:email});
+    const { status, assetType, searchTerm } = req.query;
+
+    // Initialize filter as an empty object
+    const filter = {};
+
+    if (status) {
+        filter.status = status;
+    }
+    if (assetType) {
+        filter.type = assetType;
+    }
+    if (searchTerm) {
+        filter.$or = [
+            { asset: { $regex: searchTerm, $options: 'i' } },
+            { requestDate: { $regex: searchTerm, $options: 'i' } }
+        ];
+    }
+
+    // Fetch data based on the filter
+    const cursor = requestCollection.find({ email: email, ...filter });
     const result = await cursor.toArray();
     res.send(result);
-  });
+});
+
   app.delete('/myreq/:id', async (req, res) => {
     const id = req.params.id;
     const query = { _id: new ObjectId(id) }
