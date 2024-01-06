@@ -131,7 +131,7 @@ async function run() {
     });
 
     // user updated work
-    app.patch('/user/admin/:id', async (req, res) => {
+    app.patch('/user/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -192,18 +192,18 @@ async function run() {
         res.send(result);
       })
   
-      app.post('/asset',  async (req, res) => {
+      app.post('/asset', verifyToken, verifyAdmin, async (req, res) => {
         const item = req.body;
         const result = await assetCollection.insertOne(item);
         res.send(result);
       });
-      app.delete('/asset/:id', async (req, res) => {
+      app.delete('/asset/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await assetCollection.deleteOne(query);
       res.send(result);
     })
-    app.patch('/asset/:id', async (req, res) => {
+    app.patch('/asset/:id', verifyToken, verifyAdmin, async (req, res) => {
         const item = req.body;
         const id = req.params.id;
         const filter = { _id: new ObjectId(id) }
@@ -331,7 +331,7 @@ async function run() {
       const result = await requestCollection.insertOne(item);
       res.send({result, count});
     });
-    app.patch('/myreq/approve/:id', async (req, res) => {
+    app.patch('/myreq/approve/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -355,7 +355,7 @@ async function run() {
       }
   });
 
-  app.patch('/myreq/reject/:id', async (req, res) => {
+  app.patch('/myreq/reject/:id', verifyToken, verifyAdmin, async (req, res) => {
     const id = req.params.id;
     const filter = { _id: new ObjectId(id) };
     const updatedDoc = {
